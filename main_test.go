@@ -11,14 +11,19 @@ import (
 	"testing"
 )
 
-const tableCreationQuery = `
-	CREATE TABLE IF NOT EXISTS products (id SERIAL, name TEXT NOT NULL, price NUMERIC(10, 2) NOT NULL DEFAULT 0.00, 
-	CONSTRAINT products_pkey PRIMARY KEY (id))`
+const tableCreationQuery = `CREATE TABLE IF NOT EXISTS products
+(
+id SERIAL,
+name TEXT NOT NULL,
+price NUMERIC(10,2) NOT NULL DEFAULT 0.00,
+CONSTRAINT products_pkey PRIMARY KEY (id)
+)`
 
 var a App
 
 func ensureTableExists() {
-	if _, err := a.DB.Exec(tableCreationQuery); err != nil {
+	if success, err := a.DB.Exec(tableCreationQuery); err != nil {
+		log.Println(success)
 		log.Fatal(err)
 	}
 }
@@ -47,9 +52,10 @@ func addProducts(count int) {
 	}
 
 	for i := 0; i < count; i++ {
-		a.DB.Exec("INSERT INTO products(name, price) VALUES($1, $2", "Product "+strconv.Itoa(i), (i+1.0)*10)
+		a.DB.Exec("INSERT INTO products(name, price) VALUES($1, $2)", "Product "+strconv.Itoa(i), (i+1.0)*10)
 	}
 }
+
 func TestMain(m *testing.M) {
 	a = App{}
 	a.Initialize(
@@ -98,7 +104,7 @@ func TestGetNonExistentProduct(t *testing.T) {
 func TestCreateProduct(t *testing.T) {
 	clearTable()
 
-	payload := []byte(`{"name":"test product", "price":11.22`)
+	payload := []byte(`{"name":"test product", "price":11.22}`)
 
 	req, _ := http.NewRequest("POST", "/product", bytes.NewBuffer(payload))
 	response := executeRequest(req)
